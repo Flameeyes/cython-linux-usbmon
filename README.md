@@ -17,7 +17,7 @@ To set up a development environment, you can use the following commands:
 
 ```shell
 $ git clone https://github.com/Flameeyes/cython-linux-usbmon
-$ cd usbmon-tools
+$ cd cython-linux-usbmon
 $ python3 -m venv venv
 $ . venv/bin/activate
 $ pip install -e .[dev]  # editable installation
