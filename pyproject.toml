@@ -17,3 +17,14 @@ target-version = ['py37']
 
 [tool.isort]
 line_length = 80
+
+[tool.pytest.ini_options]
+addopts = "--color=yes --ignore=setup.py -ra"
+timeout = 120
+norecursedirs = [
+  '.env',
+  '.git',
+  'dist',
+  'build',
+  'venv',
+]
