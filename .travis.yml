@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2019 The cython-linux-usbmon Authors
+#
+# SPDX-License-Identifier: Apache-2.0
+
+dist: xenial
+
+language: python
+
+matrix:
+  include:
+    - python: 3.7
+    - python: 3.8
+      env: PYTEST_OPTIONS="--mypy"
+    - python: 3.9-dev
+
+install:
+  - pip install .[dev]
+
+script:
+  - pytest -vvv $PYTEST_OPTIONS
