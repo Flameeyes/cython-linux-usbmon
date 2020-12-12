@@ -6,11 +6,11 @@
 """
 
 import sys
+from binascii import hexlify
 from typing import BinaryIO
 
 import click
 import linux_usbmon
-from usbmon.capture.usbmon_mmap import UsbmonMmapPacket
 
 
 @click.command()
@@ -31,12 +31,11 @@ def main(*, address_prefix: str, usbmon_device: BinaryIO):
     if sys.version_info < (3, 7):
         raise Exception("Unsupported Python version, please use at least Python 3.7.")
 
-    endianness = ">" if sys.byteorder == "big" else "<"
-
-    for raw_packet, payload in linux_usbmon.monitor(usbmon_device):
-        packet = UsbmonMmapPacket(endianness, raw_packet, payload)
+    for packet, payload in linux_usbmon.monitor(usbmon_device):
         if packet.address.startswith(address_prefix):
-            print(packet)
+            print(
+                packet, repr(packet), hexlify(payload) if payload else "# <no payload>"
+            )
 
 
 if __name__ == "__main__":
