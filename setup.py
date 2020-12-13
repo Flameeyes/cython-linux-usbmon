@@ -9,8 +9,4 @@ from setuptools import Extension, setup
 import setuptools_scm  # noqa: F401
 from Cython.Build import cythonize
 
-setup(
-    ext_modules=cythonize(
-        [Extension("linux_usbmon._cython", ["src/*.pyx"])]
-    ),
-)
+setup(ext_modules=cythonize([Extension("linux_usbmon._cython", ["src/*.pyx"])]))

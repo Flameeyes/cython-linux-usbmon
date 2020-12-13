@@ -25,7 +25,9 @@ import linux_usbmon
     default="",
 )
 @click.argument(
-    "usbmon-device", type=click.File(mode="rb"), required=True,
+    "usbmon-device",
+    type=click.File(mode="rb"),
+    required=True,
 )
 def main(*, address_prefix: str, usbmon_device: BinaryIO):
     if sys.version_info < (3, 7):
