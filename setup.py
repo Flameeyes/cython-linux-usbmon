@@ -11,6 +11,6 @@ from Cython.Build import cythonize
 
 setup(
     ext_modules=cythonize(
-        [Extension("linux_usbmon._cython", ["src/linux_usbmon.pyx"])]
+        [Extension("linux_usbmon._cython", ["src/*.pyx"])]
     ),
 )

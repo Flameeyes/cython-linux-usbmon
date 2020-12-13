@@ -4,12 +4,13 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from libc.errno cimport errno
-from libc.stdint cimport int8_t, int32_t, int64_t, uint8_t, uint16_t, uint32_t, uint64_t
+from libc.stdint cimport uint8_t, uint32_t
 from libc.stdlib cimport free, malloc
 from posix.ioctl cimport ioctl
 from posix.mman cimport mmap, munmap, MAP_FAILED, MAP_PRIVATE, PROT_READ
 
-
+cimport linux_usbmon_packet  # noqa: F401
+from linux_usbmon_packet cimport mon_fetch_arg, usbmon_packet
 # These are calculated from the definition provided by the Linux kernel source code, and
 # necessary to perform syscalls.
 #
@@ -21,33 +22,7 @@ from posix.mman cimport mmap, munmap, MAP_FAILED, MAP_PRIVATE, PROT_READ
 MON_IOCQ_RING_SIZE = 37381
 MON_IOCX_MFETCH = -1072655865
 
-ctypedef struct mon_fetch_arg:
-  uint32_t *offvec
-  uint32_t nfetch
-  uint32_t nflush
-
-
-ctypedef struct usbmon_packet:
-  uint64_t id
-  uint8_t type
-  uint8_t xfer_type
-  uint8_t epnum
-  uint8_t devnum
-  uint16_t busnum
-  int8_t flag_steu
-  int8_t flag_data
-  int64_t ts_sec
-  int32_t ts_usec
-  int32_t status
-  uint32_t length
-  uint32_t len_cap
-  uint8_t setup[8]
-  int32_t interval
-  int32_t start_frame
-  int32_t xfer_flags
-  int32_t ndesc
-
-USBMON_PACKET_FIELDS = (
+USBMON_PACKET_FIELDS_NAMES = (
   'id',
   'type',
   'xfer_type',
@@ -87,21 +62,20 @@ cdef class UsbmonPkt:
 
     def __repr__(self):
         """Repr alike in dataclasses, but with positional"""
-        args = [f'{str(getattr(self, name))}' for name in USBMON_PACKET_FIELDS]
+        args = [f'{str(getattr(self, name))}' for name in USBMON_PACKET_FIELDS_NAMES]
         return f"{self.__class__.__name__}({', '.join(args)})"
 
     def yaml_info(self) -> str:
         try:
             import yaml
             own_dict = {
-                self.__class__.__name__: {name: getattr(self, name) for name in USBMON_PACKET_FIELDS},
+                self.__class__.__name__: {name: getattr(self, name) for name in USBMON_PACKET_FIELDS_NAMES},
                 'payload': b'no payload',
             }
             return yaml.dump(own_dict, Dumper=yaml.Dumper)
 
         except ImportError:
             return '# no yaml installed'
-
 
     @staticmethod
     cdef UsbmonPkt from_ptr(usbmon_packet *_ptr, bint owner=False):
@@ -226,6 +200,7 @@ cdef class UsbmonPkt:
     def address(self) -> str:
         return f'{self.busnum}.{self.devnum}.{self.epnum}'
 
+
 def get_ring_size(fid):
     """Retrieve the usbmon ring buffer size."""
 
@@ -257,6 +232,19 @@ def monitor(fid):
     if usbmon == MAP_FAILED:
         raise OSError(errno, 'mmap failed')
 
+    print('\n'.join([
+        # logo source: http://patorjk.com/software/taag/#p=display&f=Rectangles&t=cython%20linux%20usbmon%20monitor
+        "",
+        "             _   _              _ _                        _                                  _ _           ",
+        "     ___ _ _| |_| |_ ___ ___   | |_|___ _ _ _ _    _ _ ___| |_ _____ ___ ___    _____ ___ ___|_| |_ ___ ___ ",
+        "    |  _| | |  _|   | . |   |  | | |   | | |_'_|  | | |_ -| . |     | . |   |  |     | . |   | |  _| . |  _|",
+        "    |___|_  |_| |_|_|___|_|_|  |_|_|_|_|___|_,_|  |___|___|___|_|_|_|___|_|_|  |_|_|_|___|_|_|_|_| |___|_|  ",
+        "        |___|                                                                                               ",
+        "",
+        "    Example USB monitor implemented with cython-linux-usbmon",
+        "",
+    ]))
+
     try:
         while True:
             # This should be optimized, just assume it's a decent value for now.
@@ -280,7 +268,7 @@ def monitor(fid):
                     data = bytes(usbmon[data_start:data_end])
                 else:
                     data = None
-                # yield (bytes(usbmon[pkt_offset:pkt_offset + 64]), data)
+
                 pypacket = UsbmonPkt.from_ptr(pkt)
                 yield pypacket, data
 
