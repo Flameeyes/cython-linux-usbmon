@@ -6,31 +6,34 @@
 """
 
 import sys
-from typing import BinaryIO
+from typing import BinaryIO, Optional
 
 import click
+import usbmon.addresspytes
 from usbmon.capture.usbmon_mmap import UsbmonMmapPacket
+from usbmon.tools import _utils
 
 import linux_usbmon
 
 
 @click.command()
 @click.option(
-    "--address-prefix",
-    "-a",
+    "--device-address",
     help=(
-        "Prefix match applied to the device address in text format. "
-        "Only packets with source or destination matching this prefix "
-        "will be printed out."
+        "Device address (busnum.devnum) of the device to capture."
+        " Only packets with source or destination matching this prefix"
+        " will be printed out."
     ),
-    default="",
+    type=_utils.DeviceAddressType(),
 )
 @click.argument(
     "usbmon-device",
     type=click.File(mode="rb"),
     required=True,
 )
-def main(*, address_prefix: str, usbmon_device: BinaryIO):
+def main(
+    *, device_address: Optional[usbmon.addresses.DeviceAddress], usbmon_device: BinaryIO
+):
     if sys.version_info < (3, 7):
         raise Exception("Unsupported Python version, please use at least Python 3.7.")
 
@@ -38,7 +41,7 @@ def main(*, address_prefix: str, usbmon_device: BinaryIO):
 
     for raw_packet, payload in linux_usbmon.monitor(usbmon_device):
         packet = UsbmonMmapPacket(endianness, raw_packet, payload)
-        if packet.address.startswith(address_prefix):
+        if device_address is None or packet.address.device_address == device_address:
             print(packet)
 
 
