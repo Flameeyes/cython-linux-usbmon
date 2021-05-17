@@ -9,7 +9,7 @@ import sys
 from typing import BinaryIO, Optional
 
 import click
-import usbmon.addresspytes
+import usbmon.addresses
 from usbmon.capture.usbmon_mmap import UsbmonMmapPacket
 from usbmon.tools import _utils
 
