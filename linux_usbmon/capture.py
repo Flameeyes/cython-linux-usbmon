@@ -9,8 +9,9 @@ import sys
 from typing import BinaryIO
 
 import click
-import linux_usbmon
 from usbmon.capture.usbmon_mmap import UsbmonMmapPacket
+
+import linux_usbmon
 
 
 @click.command()

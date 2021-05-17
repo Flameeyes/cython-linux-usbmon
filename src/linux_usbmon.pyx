@@ -3,10 +3,12 @@
 # SPDX-FileCopyrightText: © 2020 The cython-linux-usbmon Authors
 # SPDX-License-Identifier: Apache-2.0
 
-from libc.stdint cimport int8_t, int32_t, int64_t, uint8_t, uint16_t, uint32_t, uint64_t
-from libc.errno cimport errno
 from posix.ioctl cimport ioctl
-from posix.mman cimport mmap, munmap, MAP_FAILED, MAP_PRIVATE, PROT_READ
+from posix.mman cimport MAP_FAILED, MAP_PRIVATE, PROT_READ, mmap, munmap
+
+from libc.errno cimport errno
+from libc.stdint cimport (int8_t, int32_t, int64_t, uint8_t, uint16_t, uint32_t,
+                          uint64_t)
 
 # These are calculated from the definition provided by the Linux kernel source code, and
 # necessary to perform syscalls.
